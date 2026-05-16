@@ -42,10 +42,13 @@ Hardware and setup baseline for my homelab.
 
 ### Compute Cluster
 
-**Raspberry Pi 3B+**
+Mixed Pi generations, 4 nodes total:
 
-- Count: 3–4 nodes
-- Networking: Gigabit Ethernet
+- **1× Raspberry Pi 3B+** — gigabit ethernet, supports PoE+ HAT
+- **3× Raspberry Pi 3 Model B v1.2** — 10/100 ethernet, no PoE+ HAT support (HAT requires the 3B+ header pinout)
+
+Common to all:
+
 - Storage: SD card (initial), optional USB SSD later
 - Role:
   - Kubernetes cluster nodes
@@ -53,7 +56,9 @@ Hardware and setup baseline for my homelab.
 
 ### Power (Pi)
 
-**Raspberry Pi PoE+ HAT**
+Split power scheme due to mixed Pi generations:
+
+**3B+ (1 node) — Raspberry Pi PoE+ HAT**
 
 - 802.3af/at compatible
 - Active cooling
@@ -61,6 +66,12 @@ Hardware and setup baseline for my homelab.
 - Role:
   - clean power delivery
   - remote power cycling via UniFi
+
+**3B v1.2 (3 nodes) — USB from rear power board**
+
+- Powered from a rear-mounted power board (3× USB-A, shared ~4.2A budget)
+- No remote power cycling — reboot via in-OS `reboot` or physical unplug
+- Short, thick (≤1m, ≥22AWG) micro-USB cables to avoid undervoltage
 
 ### Rack Accessories
 
@@ -104,7 +115,8 @@ Additional:
      ┌───────────┼──────────────┐
      │           │              │
  ┌───▼───┐   ┌───▼───┐      ┌───▼───┐
- │ Pi 1  │   │ Pi 2  │ ...  │ Pi N  │  (PoE)
+ │ 3B+   │   │ 3B    │ ...  │ 3B    │
+ │ (PoE) │   │ (USB) │      │ (USB) │
  └───────┘   └───────┘      └───────┘
 
  (Rear)
@@ -113,10 +125,10 @@ Additional:
 
 ## 🧠 Design Decisions
 
-1. **PoE-first design**
-   - All Pis powered via PoE
-   - Eliminates power bricks
-   - Enables remote reboot via switch
+1. **PoE where supported, USB fallback**
+   - The 3B+ runs on a PoE+ HAT — clean power, remote reboot via UniFi port-cycle
+   - The three 3B v1.2 nodes pre-date PoE+ HAT support, so they're USB-powered from a rear power board
+   - Asymmetry is accepted as an interim cost; replacing the 3Bs with newer Pis would restore full PoE remote-cycling
 
 2. **Stateless-first cluster**
    - Pis boot from SD (initially)
