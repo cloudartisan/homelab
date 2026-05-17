@@ -1,6 +1,6 @@
 # homelab
 
-Hardware and setup baseline for my homelab.
+Hardware and setup baseline for my homelab. See `INVENTORY.md` for the canonical flat list of what's actually in the rack.
 
 ## 🧱 Physical Rack
 
