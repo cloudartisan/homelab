@@ -4,10 +4,9 @@ Canonical list of physical homelab hardware. See `README.md` for design rational
 
 ## Compute
 
-| Qty | Model                        | Notes                                                                |
-|-----|------------------------------|----------------------------------------------------------------------|
-| 1   | Raspberry Pi 3B+             | Gigabit ethernet, supports PoE+ HAT (HAT currently fitted)           |
-| 3   | Raspberry Pi 3 Model B v1.2  | 10/100 ethernet, pre-dates PoE+ HAT header pinout — USB-powered     |
+| Qty | Model                  | Notes                                                                   |
+|-----|------------------------|-------------------------------------------------------------------------|
+| 4   | Raspberry Pi 4B 4GB    | BCM2711, true gigabit ethernet (dedicated PCIe, not shared with USB), USB 3.0, all on PoE+ HATs |
 
 ## Storage
 
@@ -33,14 +32,7 @@ Canonical list of physical homelab hardware. See `README.md` for design rational
 
 ## Power
 
-| Qty | Model                       | Notes                                                                      |
-|-----|-----------------------------|----------------------------------------------------------------------------|
-| 1   | Raspberry Pi PoE+ HAT       | Fitted to the 3B+; active cooling; remote reboot via UniFi port-cycle     |
-| 1   | 4-port rear power board     | 1× USB-C (5V/3A) + 3× USB-A; USB total budget 4.2A; powers the three 3Bs  |
-
-## Planned
-
-| Qty | Model                | Notes                                                                                   |
-|-----|----------------------|-----------------------------------------------------------------------------------------|
-| 4   | Raspberry Pi 4B 4GB  | To replace / supplement the older Pis; all support PoE+ HAT                            |
-| 3–4 | Raspberry Pi PoE+ HAT| One per new 4B (3 if the existing HAT on the 3B+ is freed and re-used)                 |
+| Qty | Model                       | Notes                                                                              |
+|-----|-----------------------------|------------------------------------------------------------------------------------|
+| 4   | Raspberry Pi PoE+ HAT       | One per 4B; active cooling; remote reboot via UniFi port-cycle                    |
+| 1   | Rear-mounted power board    | 5 AC sockets (1 extra-wide for bricks) + 1× USB-C (5V/3A) + 3× USB-A (USB total 4.2A)                                  |

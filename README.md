@@ -1,6 +1,8 @@
 # homelab
 
-Hardware and setup baseline for my homelab. See `INVENTORY.md` for the canonical flat list of what's actually in the rack.
+Public-facing description of my homelab: hardware, topology, design decisions, and recommendations. See `INVENTORY.md` for the canonical hardware list.
+
+Exact configurations, manifests, secrets, hostnames, and IP allocations live in a separate private `homelab-ops` repo and do not appear here.
 
 ## 🧱 Physical Rack
 
@@ -42,13 +44,11 @@ Hardware and setup baseline for my homelab. See `INVENTORY.md` for the canonical
 
 ### Compute Cluster
 
-Mixed Pi generations, 4 nodes total:
+**4× Raspberry Pi 4B 4GB**
 
-- **1× Raspberry Pi 3B+** — gigabit ethernet, supports PoE+ HAT
-- **3× Raspberry Pi 3 Model B v1.2** — 10/100 ethernet, no PoE+ HAT support (HAT requires the 3B+ header pinout)
-
-Common to all:
-
+- BCM2711 (Cortex-A72), 4GB LPDDR4
+- True gigabit ethernet (dedicated PCIe, not shared with USB)
+- USB 3.0
 - Storage: SD card (initial), optional USB SSD later
 - Role:
   - Kubernetes cluster nodes
@@ -56,9 +56,7 @@ Common to all:
 
 ### Power (Pi)
 
-Split power scheme due to mixed Pi generations:
-
-**3B+ (1 node) — Raspberry Pi PoE+ HAT**
+**Raspberry Pi PoE+ HAT** (4×, one per node)
 
 - 802.3af/at compatible
 - Active cooling
@@ -67,11 +65,7 @@ Split power scheme due to mixed Pi generations:
   - clean power delivery
   - remote power cycling via UniFi
 
-**3B v1.2 (3 nodes) — USB from rear power board**
-
-- Powered from a rear-mounted power board (3× USB-A, shared ~4.2A budget)
-- No remote power cycling — reboot via in-OS `reboot` or physical unplug
-- Short, thick (≤1m, ≥22AWG) micro-USB cables to avoid undervoltage
+PoE budget headroom is tight: 4× Pi 4B + HAT at load ≈ 34W of the switch's 45W total PoE budget, leaving ~11W for any future PoE device (camera, AP).
 
 ### Rack Accessories
 
@@ -115,8 +109,7 @@ Additional:
      ┌───────────┼──────────────┐
      │           │              │
  ┌───▼───┐   ┌───▼───┐      ┌───▼───┐
- │ 3B+   │   │ 3B    │ ...  │ 3B    │
- │ (PoE) │   │ (USB) │      │ (USB) │
+ │ Pi 4B │   │ Pi 4B │ ...  │ Pi 4B │  (PoE)
  └───────┘   └───────┘      └───────┘
 
  (Rear)
@@ -125,10 +118,10 @@ Additional:
 
 ## 🧠 Design Decisions
 
-1. **PoE where supported, USB fallback**
-   - The 3B+ runs on a PoE+ HAT — clean power, remote reboot via UniFi port-cycle
-   - The three 3B v1.2 nodes pre-date PoE+ HAT support, so they're USB-powered from a rear power board
-   - Asymmetry is accepted as an interim cost; replacing the 3Bs with newer Pis would restore full PoE remote-cycling
+1. **PoE-first design**
+   - All Pis powered via PoE+ HAT
+   - Eliminates power bricks
+   - Enables remote reboot via switch port-cycle
 
 2. **Stateless-first cluster**
    - Pis boot from SD (initially)
@@ -137,6 +130,35 @@ Additional:
 3. **Patch panel for cleanliness**
    - Front-facing clean cabling
    - Rear contains device wiring
+
+## 🧮 Clustering & Orchestration
+
+Cluster spec: 4× Pi 4B 4GB → ~16GB total RAM, 16 cores, gigabit interconnect, PoE port-cycle for remote reboot, NAS-backed persistent storage.
+
+### Recommendation: k3s, single-server + 3 agents
+
+[k3s](https://k3s.io) is Rancher's lightweight Kubernetes — single ARM-friendly binary, ~512MB resident, designed for edge / low-resource hardware. It runs standard Kubernetes manifests and Helm charts, has native arm64 builds, and integrates cleanly with NFS-backed persistent volumes from the Synology.
+
+Start with **one server node + three agent nodes**:
+
+- One Pi runs the control plane (kube-apiserver + embedded sqlite); three are pure workers
+- Workload state lives on NFS, so a failed agent is a cheap SD-reflash + rejoin
+- Simpler to operate and reason about than HA; promote to a 3-server embedded-etcd HA cluster later if control-plane availability matters more than worker capacity
+
+### Alternatives
+
+| Option           | When it would win                                                |
+|------------------|------------------------------------------------------------------|
+| microk8s         | Want batteries-included (DNS, ingress, storage) over minimalism  |
+| Docker Swarm     | Want clustering without the Kubernetes learning curve            |
+| Nomad            | Care about non-container workloads in the same scheduler         |
+| `docker compose` | ≤2 services total, no real scheduling need                       |
+
+### Open decisions
+
+- GitOps tool (Flux / ArgoCD / `kubectl apply` from a Makefile)
+- Ingress (Traefik is bundled with k3s; nginx / Caddy are alternatives)
+- Storage provisioner (NFS subdir provisioner vs Synology CSI vs static PVs)
 
 ## 📦 Storage Strategy
 
@@ -165,10 +187,9 @@ _TBD_
 ## 🔜 Future Enhancements
 
 - VLAN segmentation (UniFi)
-- Kubernetes cluster (k3s recommended)
-- NFS provisioner from Synology
 - Monitoring stack (Prometheus/Grafana)
 - Optional SSD upgrade per node
+- 3-server HA control plane (promotion from single-server k3s)
 
 ## 🎯 Summary
 
