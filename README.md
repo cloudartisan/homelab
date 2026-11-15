@@ -219,7 +219,18 @@ Ubuntu Server LTS (arm64) is the alternative. It would win if the same distribut
 
 ## 🧱 Rack Layout (U allocation)
 
-_TBD_
+Top to bottom, U12 at the top. Positions are read from a photo of the front of the rack, so the unit counts for the two NASes are approximate.
+
+| U          | Device                                  | Notes                                                    |
+|------------|-----------------------------------------|----------------------------------------------------------|
+| U11 to U12 | UniFi Switch Lite 16 PoE                | Ports face front                                         |
+| U10        | 12-port patch panel                     | Directly under the switch, so patch cables stay short    |
+| U9         | Blank panel                             | Gap for the cable drop from the switch to the Pis        |
+| U7 to U8   | GeeekPi 2U Raspberry Pi mount           | 4× Pi 4B, each cabled straight up to the switch          |
+| U4 to U6   | Western Digital ShareSpace              | Free-standing unit                                       |
+| U1 to U3   | Synology DS1513+                        | Free-standing unit on the rack floor, heaviest at the bottom |
+
+The rack is full. There is no spare U for further hardware without removing the blank panel.
 
 ## ⚠️ Constraints
 
