@@ -1,0 +1,16 @@
+# Local hooks only. Enable once per clone with: pre-commit install
+# Needs gitleaks on the PATH (brew install gitleaks).
+repos:
+  - repo: local
+    hooks:
+      - id: gitleaks
+        name: gitleaks (credentials in staged changes)
+        entry: gitleaks git --pre-commit --staged --redact --no-banner
+        language: system
+        pass_filenames: false
+      - id: private-details
+        name: private network details (IPs, MACs, .local names)
+        entry: .github/scripts/check-private-details.sh
+        language: system
+        pass_filenames: false
+        always_run: true
