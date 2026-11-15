@@ -1,4 +1,4 @@
-# Secrets — never commit
+# Secrets: never commit
 .env
 .env.*
 !.env.example
@@ -43,6 +43,7 @@ known_hosts
 *.swp
 *.swo
 *~
+tags
 
 # Local Claude config
 CLAUDE.md
