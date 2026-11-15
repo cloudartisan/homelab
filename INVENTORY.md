@@ -12,14 +12,18 @@ Canonical list of physical homelab hardware. See `README.md` for design rational
 
 | Qty | Model                       | Notes                                                            |
 |-----|-----------------------------|------------------------------------------------------------------|
-| 1   | Synology DS1513+            | 5-bay NAS, 4× GigE (LAG capable), NFS/SMB — primary storage     |
-| 1   | Western Digital ShareSpace  | Single ethernet — secondary / backup / staging                  |
+| 1   | Synology DS1513+            | 5-bay NAS, 4× GigE (LAG in use), SMB today, NFS planned: primary storage |
+| 5   | WD Red 4TB (WD40EFRX)       | In the DS1513+, Synology Hybrid RAID, one-drive fault tolerance  |
+| 1   | Western Digital ShareSpace  | Single ethernet: secondary / backup / staging                    |
 
 ## Network
 
 | Qty | Model                              | Notes                                                       |
 |-----|------------------------------------|-------------------------------------------------------------|
 | 1   | Ubiquiti UniFi Switch Lite 16 PoE  | 16× GigE, 8× PoE+ (802.3at), 45W total PoE budget, fanless |
+| 1   | Netgear Orbi mesh system           | Router plus satellites; gateway, DHCP, DNS and Wi-Fi; outside the rack; the rack switch plugs into the router |
+
+The UniFi controller is software (UniFi OS Server) on a workstation, not rack hardware.
 
 ## Rack & Mounting
 
@@ -32,7 +36,7 @@ Canonical list of physical homelab hardware. See `README.md` for design rational
 
 ## Power
 
-| Qty | Model                       | Notes                                                                              |
-|-----|-----------------------------|------------------------------------------------------------------------------------|
-| 4   | Raspberry Pi PoE+ HAT       | One per 4B; active cooling; remote reboot via UniFi port-cycle                    |
-| 1   | Rear-mounted power board    | 5 AC sockets (1 extra-wide for bricks) + 1× USB-C (5V/3A) + 3× USB-A (USB total 4.2A)                                  |
+| Qty | Model                       | Notes                                                                                 |
+|-----|-----------------------------|---------------------------------------------------------------------------------------|
+| 4   | Raspberry Pi PoE+ HAT       | One per 4B; active cooling; remote reboot via UniFi port-cycle                        |
+| 1   | Rear-mounted power board    | 5 AC sockets (1 extra-wide for bricks) + 1× USB-C (5V/3A) + 3× USB-A (USB total 4.2A) |

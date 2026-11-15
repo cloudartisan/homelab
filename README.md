@@ -16,11 +16,11 @@ Exact configurations, manifests, secrets, hostnames, and IP allocations live in 
 
 **Synology DS1513+**
 
-- 5-bay NAS
-- 4× Gigabit Ethernet (link aggregation capable)
+- 5-bay NAS, 5× 4TB WD Red in Synology Hybrid RAID (one-drive fault tolerance), about 14.5TB usable
+- 4× Gigabit Ethernet, with link aggregation in use
 - Role:
-  - NFS / SMB storage
-  - Kubernetes persistent volumes
+  - SMB storage today, NFS once the cluster needs it
+  - persistent volumes for the cluster (planned)
   - backups
 
 **Western Digital ShareSpace**
@@ -40,7 +40,15 @@ Exact configurations, manifests, secrets, hostnames, and IP allocations live in 
   - core switch
   - PoE provider for Pis
   - VLAN support (future)
-- Management: adopted into [UniFi OS Server](https://ui.com/download) on a workstation. No Cloud Key / Dream Machine in the rack, so the controller host must be reachable on the LAN to push config changes.
+- Management: adopted into [UniFi OS Server](https://ui.com/download) on a workstation, where it runs as a macOS app with a bundled VM. No Cloud Key / Dream Machine in the rack, so the controller host must be reachable on the LAN to push config changes.
+
+**Upstream: Netgear Orbi mesh**
+
+- Consumer mesh router and satellites, outside the rack
+- Role:
+  - internet gateway, DHCP and DNS for the whole LAN
+  - Wi-Fi
+- The Orbi router connects to the internet service. The rack switch plugs into the Orbi router. The controller workstation reaches the rack over the Wi-Fi mesh.
 
 ### Compute Cluster
 
@@ -51,7 +59,7 @@ Exact configurations, manifests, secrets, hostnames, and IP allocations live in 
 - USB 3.0
 - Storage: SD card (initial), optional USB SSD later
 - Role:
-  - Kubernetes cluster nodes
+  - cluster nodes (k3s recommended, nothing deployed yet)
   - container workloads
 
 ### Power (Pi)
@@ -74,6 +82,15 @@ PoE budget headroom is tight: 4× Pi 4B + HAT at load ≈ 34W of the switch's 45
 - Holds up to 4 Pis
 - Front-facing ports
 - PoE + USB accessible from front
+
+**10″ 12-port patch panel**
+
+- Front-facing ports
+
+**Rear-mounted power board**
+
+- 5 AC sockets (1 extra-wide for bricks)
+- 1× USB-C (5V/3A) and 3× USB-A
 
 Additional:
 
@@ -114,7 +131,20 @@ Additional:
 
  (Rear)
  NAS → Patch Panel → Switch
+
+ (Upstream)
+ Switch → Orbi router (gateway, DHCP, DNS) → Internet
+ Controller workstation → Wi-Fi mesh → Orbi router
 ```
+
+## 📍 Current Status
+
+As of November 2026:
+
+- **Controller:** UniFi OS Server is running on the workstation.
+- **Storage:** both NASes are online and serve SMB and AFP. Both act as Time Machine targets. NFS is not enabled on either yet.
+- **Services on the Synology:** Plex Media Server, plus a nightly offsite backup of photos and home videos to Amazon Glacier.
+- **Pi cluster:** the nodes are powered over PoE but not yet imaged. No orchestration is deployed.
 
 ## 🧠 Design Decisions
 
@@ -125,7 +155,7 @@ Additional:
 
 2. **Stateless-first cluster**
    - Pis boot from SD (initially)
-   - Persistent storage via Synology (NFS)
+   - Persistent storage via Synology (NFS, not yet enabled)
 
 3. **Patch panel for cleanliness**
    - Front-facing clean cabling
@@ -137,7 +167,9 @@ Cluster spec: 4× Pi 4B 4GB → ~16GB total RAM, 16 cores, gigabit interconnect,
 
 ### Recommendation: k3s, single-server + 3 agents
 
-[k3s](https://k3s.io) is Rancher's lightweight Kubernetes — single ARM-friendly binary, ~512MB resident, designed for edge / low-resource hardware. It runs standard Kubernetes manifests and Helm charts, has native arm64 builds, and integrates cleanly with NFS-backed persistent volumes from the Synology.
+This is a recommendation, not a decision: nothing is deployed yet.
+
+[k3s](https://k3s.io) is Rancher's lightweight Kubernetes: a single ARM-friendly binary, ~512MB resident, designed for edge / low-resource hardware. It runs standard Kubernetes manifests and Helm charts, has native arm64 builds, and integrates cleanly with NFS-backed persistent volumes from the Synology.
 
 Start with **one server node + three agent nodes**:
 
@@ -159,6 +191,18 @@ Start with **one server node + three agent nodes**:
 - GitOps tool (Flux / ArgoCD / `kubectl apply` from a Makefile)
 - Ingress (Traefik is bundled with k3s; nginx / Caddy are alternatives)
 - Storage provisioner (NFS subdir provisioner vs Synology CSI vs static PVs)
+
+## 💿 Node Provisioning
+
+Recommended baseline for the four nodes. It holds whichever orchestrator wins.
+
+1. **Image:** Raspberry Pi OS Lite (64-bit), written with Raspberry Pi Imager. No desktop, an arm64 userland, and the PoE+ HAT fan works without extra packages.
+2. **Customise in Imager:** a unique hostname per node, one user with SSH public-key login only, timezone and locale. No Wi-Fi.
+3. **Addressing:** a DHCP reservation per node on the router, so addresses stay stable.
+4. **First boot:** full package upgrade and bootloader EEPROM update. Then enable the memory cgroup on the kernel command line (`cgroup_memory=1 cgroup_enable=memory`), which k3s and other container runtimes need.
+5. **SD card care:** use high-endurance cards and keep write-heavy state on the NAS. If cards wear, move the control-plane node to a USB SSD first.
+
+Ubuntu Server LTS (arm64) is the alternative. It would win if the same distribution is wanted everywhere. It costs an extra kernel-modules package for k3s networking and manual PoE fan configuration.
 
 ## 📦 Storage Strategy
 
@@ -189,6 +233,7 @@ _TBD_
 - VLAN segmentation (UniFi)
 - Monitoring stack (Prometheus/Grafana)
 - Optional SSD upgrade per node
+- Refresh the NAS drives (the current set is around ten years old)
 - 3-server HA control plane (promotion from single-server k3s)
 
 ## 🎯 Summary
