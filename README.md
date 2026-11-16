@@ -94,7 +94,7 @@ PoE budget headroom is tight: 4× Pi 4B + HAT at load ≈ 34W of the switch's 45
 
 Additional:
 
-- 1× extra 10″ shelf (for second NAS)
+- 1× 10″ shelf, carrying the second NAS above the first
 
 ## 🔌 Cabling
 
@@ -219,7 +219,7 @@ Ubuntu Server LTS (arm64) is the alternative. It would win if the same distribut
 
 ## 🧱 Rack Layout (U allocation)
 
-Top to bottom, U12 at the top. Positions are read from a photo of the front of the rack, so the unit counts for the two NASes are approximate.
+Top to bottom, U12 at the top. Positions above the shelf are read from a photo of the front of the rack, so they are approximate. The shelf position is counted from the rail holes (three per U).
 
 | U          | Device                                  | Notes                                                    |
 |------------|-----------------------------------------|----------------------------------------------------------|
@@ -227,10 +227,10 @@ Top to bottom, U12 at the top. Positions are read from a photo of the front of t
 | U10        | 12-port patch panel                     | Directly under the switch, so patch cables stay short    |
 | U9         | Blank panel                             | Gap for the cable drop from the switch to the Pis        |
 | U7 to U8   | GeeekPi 2U Raspberry Pi mount           | 4× Pi 4B, each cabled straight up to the switch          |
-| U4 to U6   | Western Digital ShareSpace              | Free-standing unit                                       |
-| U1 to U3   | Synology DS1513+                        | Free-standing unit on the rack floor, heaviest at the bottom |
+| U4 to U6   | Western Digital ShareSpace              | Stands on a shelf fixed in U4                            |
+| U1 to U3   | Synology DS1513+                        | Stands on the baseplate, heaviest at the bottom. At 157mm it is taller than 3U and reaches just under the shelf |
 
-The rack is full. There is no spare U for further hardware without removing the blank panel.
+The rack is full. There is no spare U for further hardware without removing the blank panel. The NAS bay has almost no spare height, so a taller replacement NAS would mean moving the shelf up.
 
 ## ⚠️ Constraints
 
