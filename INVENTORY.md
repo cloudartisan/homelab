@@ -32,7 +32,7 @@ The UniFi controller is software (UniFi OS Server) on a workstation, not rack ha
 | 1   | DeskPi RackMate T2                     | 10″ 12U rack, ~260mm depth, black              |
 | 1   | GeeekPi 10″ 2U Raspberry Pi Rack Mount | Holds up to 4 Pis, front-facing ports          |
 | 1   | 10″ 12-port patch panel                | Front-facing ports                             |
-| 1   | 10″ shelf (spare)                      | Earmarked for second NAS                       |
+| 1   | 10″ shelf                              | Carries the ShareSpace above the DS1513+       |
 
 ## Power
 
